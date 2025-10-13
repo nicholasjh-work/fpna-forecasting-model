@@ -115,4 +115,48 @@ A visual comparison of actual vs. forecasted revenue using a driver-based and ML
 
 ---
 
-💡 *For full dashboard integration, see the upcoming Tableau FP&A view (next phase).*
+## ⚙️ How to Run Locally
+
+Follow these steps to reproduce the forecasting results and generate outputs for Tableau or Power BI.
+
+### Clone the repository
+```bash
+git clone https://github.com/nicholasjh-work/fpna-forecasting-model.git
+cd fpna-forecasting-model
+```
+
+```bash
+python -m venv venv
+source venv/bin/activate   # On macOS / Linux
+venv\Scripts\activate      # On Windows
+```
+
+
+```bash
+pip install -r requirements.txt
+```
+
+```bash
+jupyter lab
+```
+
+```bash
+notebooks/02_accuracy_reporting.ipynb
+```
+
+---
+
+## This notebook will:
+Generate baseline and ML forecasts
+Compute accuracy metrics (MAPE, WAPE, RMSE)
+Export outputs to data/model_metrics.csv
+Save forecast visualization to docs/actuals_vs_forecasts.png
+
+## Optional: Explore in Tableau
+You can connect Tableau to:
+data/model_metrics.csv for KPI metrics
+data/synthetic_financials.csv for scenario visualization
+
+## These datasets power executive dashboards for FP&A insights.
+
+---
