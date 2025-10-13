@@ -1,79 +1,118 @@
-# Predictive FP&A Forecasting Model (Driver-Based + ML)
+# FP&A Forecasting Model – Driver-Based + ML Approach
 
 **Author:** Nicholas Hidalgo  
-**Role:** FP&A & Business Intelligence Leader  
-**Tools:** Python (pandas, scikit-learn), Tableau, GitHub  
+**Location:** Boston, MA  
+**Role:** Business Intelligence & Analytics Leader  
+**Tools:** Python • Pandas • scikit-learn • Matplotlib • Tableau • Power BI • Snowflake • Databricks  
 
 ---
 
-## Business Context
-Finance leadership needed faster, more accurate forecasting for $500M+ operations.  
-This project demonstrates a **driver-based** and **ML-assisted** approach to improve forecast accuracy, speed, and executive decision-making.
+## Executive Summary
+This project demonstrates an **FP&A forecasting framework** that integrates traditional driver-based forecasting with **machine learning (Linear Regression)** to enhance revenue accuracy and decision-making efficiency.  
+
+Developed as part of a modern analytics portfolio, this model automates baseline vs. ML forecast comparison, evaluates accuracy (MAPE, WAPE, RMSE), and exports KPI metrics for **Tableau executive dashboards**.
 
 ---
 
-## Approach
-1. Generate synthetic financial dataset (Revenue, Volume, Cost).  
-2. Apply regression and machine learning forecasting (Linear Regression baseline).  
-3. Measure accuracy (MAPE, RMSE, WAPE).  
-4. Visualize base, optimistic, and conservative scenarios.  
-5. Export results for Tableau / Power BI dashboarding.
+## Project Structure
+fpna_forecasting_model/
+│
+├── data/ # Raw & processed datasets (CSV exports)
+├── notebooks/ # Jupyter notebooks (modeling, accuracy, scenario analysis)
+├── docs/ # Visuals & documentation (for README & Tableau)
+├── dashboard/ # Tableau dashboard assets
+├── README.md # Project documentation
+└── requirements.txt # Environment dependencies
 
 ---
 
-## Results
-- Forecast accuracy improved by **15% (MAPE)**  
-- Report generation time reduced by **25%**  
-- Delivered **executive-ready dashboards** and KPI metrics via Tableau
+## Objectives
+- Develop a **baseline & ML forecasting model** for revenue prediction  
+- Quantify accuracy using MAPE, WAPE, and RMSE  
+- Export standardized KPI metrics for Tableau  
+- Visualize results for executive reporting  
+- Build future scenario & sensitivity analysis (next phase)  
+
+---
+
+## Key Model Metrics (Sample Output)
+
+| Model                    | MAPE   | WAPE   | RMSE  |
+|---------------------------|--------|--------|-------:|
+| Baseline (Last Value)     | 6.9%   | 7.3%   | 3,210 |
+| ML Linear Regression      | 4.1%   | 4.5%   | 2,540 |
+
+*Metrics calculated using test set from baseline vs. ML forecast comparison.*
 
 ---
 
 ## Forecast Visualization
+A visual comparison of actual vs. forecasted revenue using a driver-based and ML model.
 
-A visual comparison of actual vs. forecasted revenue using a driver-based + ML approach.
-
-![Forecast Comparison](https://raw.githubusercontent.com/nicholasjh-work/fpna-forecasting-model/main/docs/actuals_vs_forecasts.png)
-
----
+<p align="center">
+  <img src="https://raw.githubusercontent.com/nicholasjh-work/fpna-forecasting-model/main/docs/actuals_vs_forecasts.png" alt="Forecast Comparison" width="750"/>
+</p>
 
 ### Interpretation
-- **Baseline model:** Holds the last observed revenue constant.  
-- **ML model (Linear Regression):** Uses time, volume, and price as predictive drivers.  
-- The **ML forecast** tracks actuals more closely, demonstrating higher accuracy and responsiveness to business drivers.  
-- Exported metrics (MAPE, WAPE, RMSE) are stored in `data/model_metrics.csv` for Tableau or Power BI KPI dashboards.
-
----
-
-## Folder Structure
-fpna_forecasting_model/
-│
-├── data/ → Synthetic dataset (.csv)
-├── notebooks/ → Jupyter analysis & modeling
-├── dashboard/ → Tableau visualizations
-├── docs/ → KPI dictionary & documentation
-└── README.md → Project overview
+- **Baseline:** Holds the last observed revenue constant.  
+- **ML model:** Predicts revenue using time, volume, and price drivers.  
+- ML model tracks actuals more closely → higher predictive accuracy.  
+- Metrics exported to `data/model_metrics.csv` for Tableau dashboards.  
 
 ---
 
 ## How to Run
-1. Open `/notebooks/02_accuracy_reporting.ipynb`  
-2. Run all cells sequentially  
-3. Outputs:
-   - `synthetic_financials.csv` in `/data`
-   - Forecast accuracy metrics printed in notebook
-   - `model_metrics.csv` (for Tableau KPI dashboards)
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/nicholasjh-work/fpna-forecasting-model.git
+   cd fpna-forecasting-model
 
 ---
 
-## Next Steps
-- Integrate Snowflake / Databricks data pipelines  
-- Add Prophet & ARIMA time-series forecasting models  
-- Deploy automated data refresh pipeline  
+## Objectives
+- Develop a **baseline & ML forecasting model** for revenue prediction  
+- Quantify accuracy using MAPE, WAPE, and RMSE  
+- Export standardized KPI metrics for Tableau  
+- Visualize results for executive reporting  
+- Build future scenario & sensitivity analysis (next phase)  
 
 ---
 
-### Portfolio Links
-- [GitHub Repository](https://github.com/nicholasjh-work/fpna-forecasting-model)
-- [Tableau Dashboard (Coming Soon)](https://public.tableau.com/app/profile/nicholasjh)
-- [Kaggle Portfolio (Coming Soon)](https://www.kaggle.com/nicholasjh)
+## Key Model Metrics (Sample Output)
 
+| Model                    | MAPE   | WAPE   | RMSE  |
+|---------------------------|--------|--------|-------:|
+| Baseline (Last Value)     | 6.9%   | 7.3%   | 3,210 |
+| ML Linear Regression      | 4.1%   | 4.5%   | 2,540 |
+
+*Metrics calculated using test set from baseline vs. ML forecast comparison.*
+
+---
+
+## Forecast Visualization
+A visual comparison of actual vs. forecasted revenue using a driver-based and ML model.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/nicholasjh-work/fpna-forecasting-model/main/docs/actuals_vs_forecasts.png" alt="Forecast Comparison" width="750" />
+</p>
+
+### Interpretation
+- **Baseline model:** Holds the last observed revenue constant.  
+- **ML model (Linear Regression):** Predicts revenue using time, volume, and price drivers.  
+- The **ML forecast** tracks actuals more closely, showing higher predictive accuracy and responsiveness to business drivers.  
+- Exported metrics (`MAPE`, `WAPE`, `RMSE`) are stored in `data/model_metrics.csv` for Tableau or Power BI dashboards.
+
+---
+
+## Portfolio Links
+
+| Platform | Link |
+|-----------|------|
+| **GitHub** | [nicholasjh-work](https://github.com/nicholasjh-work) |
+| **Tableau Public** | [Nicholas Hidalgo](https://public.tableau.com/app/profile/nicholashidalgo) |
+| **Kaggle** | [nicholasjhidalgo](https://www.kaggle.com/nicholashidalgo) |
+| **LinkedIn** | [nicholasjhidalgo](https://www.linkedin.com/in/nicholasjhidalgo) |
+
+---
+
+💡 *For full dashboard integration, see the upcoming Tableau FP&A view (next phase).*
