@@ -24,7 +24,23 @@ This project demonstrates a **driver-based** and **ML-assisted** approach to imp
 ## Results
 - Forecast accuracy improved by **15% (MAPE)**  
 - Report generation time reduced by **25%**  
-- Delivered **executive-ready dashboards** and KPI metrics via Tableau  
+- Delivered **executive-ready dashboards** and KPI metrics via Tableau
+
+---
+
+## Forecast Visualization
+
+A visual comparison of actual vs. forecasted revenue using a driver-based + ML approach.
+
+![Forecast Comparison](https://raw.githubusercontent.com/nicholasjh-work/fpna-forecasting-model/main/docs/actuals_vs_forecasts.png)
+
+---
+
+### Interpretation
+- **Baseline model:** Holds the last observed revenue constant.  
+- **ML model (Linear Regression):** Uses time, volume, and price as predictive drivers.  
+- The **ML forecast** tracks actuals more closely, demonstrating higher accuracy and responsiveness to business drivers.  
+- Exported metrics (MAPE, WAPE, RMSE) are stored in `data/model_metrics.csv` for Tableau or Power BI KPI dashboards.
 
 ---
 
