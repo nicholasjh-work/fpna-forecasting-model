@@ -1,0 +1,30 @@
+scenarios:
+  base:
+    volume_factor: 1.0
+    price_factor: 1.0
+    description: "No shocks. Forecast as-is."
+
+  conservative:
+    volume_factor: 0.92
+    price_factor: 0.98
+    description: "8% volume decline, 2% price erosion."
+
+  optimistic:
+    volume_factor: 1.08
+    price_factor: 1.03
+    description: "8% volume growth, 3% price increase."
+
+  price_increase:
+    volume_factor: 1.0
+    price_factor: 1.05
+    description: "5% price increase, volume unchanged."
+
+  volume_decline:
+    volume_factor: 0.85
+    price_factor: 1.0
+    description: "15% volume decline, price unchanged."
+
+  recession:
+    volume_factor: 0.80
+    price_factor: 0.95
+    description: "20% volume drop, 5% price erosion. Stress test."

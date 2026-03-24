@@ -1,0 +1,28 @@
+model:
+  type: linear_regression
+  train_test_split: 0.8
+  cv_folds: 5
+
+features:
+  - volume_lag_1
+  - volume_lag_3
+  - volume_rolling_3m
+  - volume_rolling_12m
+  - price_index
+  - price_change_pct
+  - mix_share
+  - month_sin
+  - month_cos
+  - is_q4
+  - volume_yoy_pct
+
+target: net_revenue
+
+data:
+  history_months: 36
+  min_rows_for_training: 24
+
+evaluation:
+  mape_threshold: 10.0
+  wape_threshold: 12.0
+  max_bias_pct: 5.0
