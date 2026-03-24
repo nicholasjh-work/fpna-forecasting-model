@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FP&A Forecasting Model</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#f8f9fa;--card:#fff;--border:#e2e8f0;--text:#1a202c;--muted:#64748b;--blue:#2563eb;--green:#16a34a;--amber:#d97706;--red:#dc2626;--teal:#0d9488;--purple:#7c3aed}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);padding:20px;max-width:1400px;margin:0 auto}
+h1{font-size:22px;font-weight:600;margin-bottom:4px}
+.subtitle{color:var(--muted);font-size:13px;margin-bottom:20px}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px}
+.kpi-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px}
+.kpi-value{font-size:28px;font-weight:700}
+.kpi-sub{font-size:12px;color:var(--muted);margin-top:4px}
+.kpi-value.blue{color:var(--blue)}
+.kpi-value.green{color:var(--green)}
+.kpi-value.amber{color:var(--amber)}
+.kpi-value.teal{color:var(--teal)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px}
+.card-title{font-size:14px;font-weight:600;margin-bottom:12px}
+.chart-wrap{position:relative;height:280px}
+.section-title{font-size:16px;font-weight:600;margin:24px 0 12px;padding-bottom:8px;border-bottom:2px solid var(--blue)}
+.scenario-controls{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
+.scenario-controls label{font-size:13px;color:var(--muted)}
+.scenario-controls select,.scenario-controls input{padding:6px 12px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:var(--card)}
+.scenario-controls input[type=range]{width:140px}
+.factor-val{font-size:13px;font-weight:600;min-width:40px;display:inline-block}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:8px 10px;border-bottom:2px solid var(--border);color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.5px}
+td{padding:8px 10px;border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}
+.badge-green{background:#dcfce7;color:#166534}
+.badge-blue{background:#dbeafe;color:#1e40af}
+@media(max-width:900px){.kpi-row,.grid-2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<h1>FP&A Revenue Forecasting Model</h1>
+<p class="subtitle">Driver-based linear regression. MAPE 4.1% vs. 6.9% baseline. Synthetic data, 24 months history + 6 months forecast. Built with Python, pandas, NumPy, scikit-learn, Snowflake.</p>
+
+<div class="kpi-row">
+<div class="kpi"><div class="kpi-label">Model MAPE</div><div class="kpi-value green">4.1%</div><div class="kpi-sub">vs. 6.9% baseline (41% improvement)</div></div>
+<div class="kpi"><div class="kpi-label">WAPE</div><div class="kpi-value blue">4.5%</div><div class="kpi-sub">Revenue-weighted accuracy</div></div>
+<div class="kpi"><div class="kpi-label">Forecast Bias</div><div class="kpi-value teal">+0.3%</div><div class="kpi-sub">Slight over-forecast, within tolerance</div></div>
+<div class="kpi"><div class="kpi-label">CV MAPE Range</div><div class="kpi-value amber">3.8-4.6%</div><div class="kpi-sub">5-fold time series cross-validation</div></div>
+</div>
+
+<div class="section-title">Actual vs. Forecast with Confidence Interval</div>
+<div class="card"><div class="chart-wrap"><canvas id="chartForecast"></canvas></div></div>
+
+<div class="section-title">Scenario Analysis</div>
+<div class="scenario-controls">
+<label>Volume factor:</label>
+<input type="range" id="volSlider" min="70" max="120" value="100" oninput="updateScenario()">
+<span class="factor-val" id="volLabel">1.00</span>
+<label>Price factor:</label>
+<input type="range" id="priceSlider" min="85" max="115" value="100" oninput="updateScenario()">
+<span class="factor-val" id="priceLabel">1.00</span>
+<select id="scenarioPreset" onchange="applyPreset()">
+<option value="custom">Custom</option>
+<option value="base">Base (1.0 / 1.0)</option>
+<option value="conservative">Conservative (0.92 / 0.98)</option>
+<option value="optimistic">Optimistic (1.08 / 1.03)</option>
+<option value="recession">Recession (0.80 / 0.95)</option>
+</select>
+</div>
+<div class="grid-2">
+<div class="card"><div class="card-title">Scenario forecast comparison</div><div class="chart-wrap"><canvas id="chartScenario"></canvas></div></div>
+<div class="card">
+<div class="card-title">Scenario impact summary</div>
+<table>
+<thead><tr><th>Month</th><th>Base Forecast</th><th>Scenario Forecast</th><th>Impact</th></tr></thead>
+<tbody id="scenarioTable"></tbody>
+</table>
+</div>
+</div>
+
+<div class="section-title">Feature Importance</div>
+<div class="grid-2">
+<div class="card"><div class="card-title">Coefficient weights (normalized)</div><div class="chart-wrap"><canvas id="chartFeatures"></canvas></div></div>
+<div class="card">
+<div class="card-title">Feature details</div>
+<table>
+<thead><tr><th>Feature</th><th>Coefficient</th><th>Importance</th><th>Type</th></tr></thead>
+<tbody id="featureTable"></tbody>
+</table>
+</div>
+</div>
+
+<div class="section-title">Model Comparison</div>
+<div class="grid-2">
+<div class="card"><div class="card-title">Residual distribution</div><div class="chart-wrap"><canvas id="chartResiduals"></canvas></div></div>
+<div class="card"><div class="card-title">Cross-validation MAPE by fold</div><div class="chart-wrap"><canvas id="chartCV"></canvas></div></div>
+</div>
+
+<p style="margin-top:24px;font-size:11px;color:var(--muted)">All data are synthetic. Source: github.com/nicholasjh-work/fpna-forecasting-model</p>
+
+<script>
+const MONTHS = ['Jan 23','Feb 23','Mar 23','Apr 23','May 23','Jun 23','Jul 23','Aug 23','Sep 23','Oct 23','Nov 23','Dec 23','Jan 24','Feb 24','Mar 24','Apr 24','May 24','Jun 24','Jul 24','Aug 24','Sep 24','Oct 24','Nov 24','Dec 24'];
+const ACTUALS = [1300,1225,1375,1275,1325,1450,1250,1350,1275,1400,1325,1500,1390,1313,1466,1364,1415,1543,1339,1441,1364,1492,1415,1594];
+const FORECAST_MONTHS = ['Jan 25','Feb 25','Mar 25','Apr 25','May 25','Jun 25'];
+const BASE_FORECAST = [1520,1435,1590,1480,1530,1670];
+const UPPER = [1620,1535,1690,1580,1630,1770];
+const LOWER = [1420,1335,1490,1380,1430,1570];
+
+const FEATURES = [
+    {name:'volume_rolling_3m',coef:0.731,importance:0.287,type:'Volume'},
+    {name:'volume_lag_1',coef:0.524,importance:0.206,type:'Volume'},
+    {name:'price_index',coef:0.458,importance:0.180,type:'Price'},
+    {name:'month_sin',coef:0.312,importance:0.123,type:'Seasonality'},
+    {name:'volume_yoy_pct',coef:0.189,importance:0.074,type:'Volume'},
+    {name:'mix_share',coef:0.142,importance:0.056,type:'Mix'},
+    {name:'month_cos',coef:0.081,importance:0.032,type:'Seasonality'},
+    {name:'price_change_pct',coef:0.052,importance:0.020,type:'Price'},
+    {name:'is_q4',coef:0.034,importance:0.013,type:'Seasonality'},
+    {name:'volume_lag_3',coef:0.018,importance:0.007,type:'Volume'},
+    {name:'volume_rolling_12m',coef:0.005,importance:0.002,type:'Volume'},
+];
+
+const CV_MAPES = [3.8, 4.2, 3.9, 4.6, 4.1];
+const RESIDUALS = [-45,-12,28,-67,15,42,-31,8,-22,55,19,-38,27,-14,61,-9,33,-52,11,44];
+const RESIDUAL_BINS = ['-80 to -60','-60 to -40','-40 to -20','-20 to 0','0 to 20','20 to 40','40 to 60','60 to 80'];
+const RESIDUAL_COUNTS = [1,2,3,4,4,3,2,1];
+
+let charts = {};
+
+// Forecast chart
+function buildForecastChart() {
+    const ctx = document.getElementById('chartForecast').getContext('2d');
+    const allLabels = [...MONTHS, ...FORECAST_MONTHS];
+    const actualData = [...ACTUALS, ...Array(6).fill(null)];
+    const forecastData = [...Array(24).fill(null), ...BASE_FORECAST];
+    const upperData = [...Array(24).fill(null), ...UPPER];
+    const lowerData = [...Array(24).fill(null), ...LOWER];
+
+    charts.forecast = new Chart(ctx, {
+        type:'line',
+        data:{
+            labels: allLabels,
+            datasets:[
+                {label:'Actual Revenue ($K)',data:actualData,borderColor:'#2563eb',backgroundColor:'rgba(37,99,235,0.08)',fill:true,tension:0.3,pointRadius:3,borderWidth:2},
+                {label:'Forecast',data:forecastData,borderColor:'#16a34a',borderDash:[6,3],tension:0.3,pointRadius:4,borderWidth:2},
+                {label:'95% Upper',data:upperData,borderColor:'rgba(22,163,74,0.2)',backgroundColor:'rgba(22,163,74,0.08)',fill:'+1',pointRadius:0,borderWidth:1},
+                {label:'95% Lower',data:lowerData,borderColor:'rgba(22,163,74,0.2)',fill:false,pointRadius:0,borderWidth:1},
+            ]
+        },
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:11}}}},scales:{x:{ticks:{font:{size:9},maxRotation:45}},y:{title:{display:true,text:'Revenue ($K)',font:{size:11}}}}}
+    });
+}
+
+// Scenario chart
+function buildScenarioChart() {
+    const ctx = document.getElementById('chartScenario').getContext('2d');
+    charts.scenario = new Chart(ctx, {
+        type:'bar',
+        data:{
+            labels: FORECAST_MONTHS,
+            datasets:[
+                {label:'Base Forecast',data:[...BASE_FORECAST],backgroundColor:'rgba(37,99,235,0.6)',borderRadius:4},
+                {label:'Scenario',data:[...BASE_FORECAST],backgroundColor:'rgba(22,163,74,0.6)',borderRadius:4},
+            ]
+        },
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:11}}}},scales:{y:{title:{display:true,text:'Revenue ($K)',font:{size:11}}}}}
+    });
+}
+
+function updateScenario() {
+    const vol = document.getElementById('volSlider').value / 100;
+    const price = document.getElementById('priceSlider').value / 100;
+    document.getElementById('volLabel').textContent = vol.toFixed(2);
+    document.getElementById('priceLabel').textContent = price.toFixed(2);
+    document.getElementById('scenarioPreset').value = 'custom';
+
+    const factor = vol * price;
+    const scenarioData = BASE_FORECAST.map(v => Math.round(v * factor));
+    charts.scenario.data.datasets[1].data = scenarioData;
+
+    if (factor < 0.95) charts.scenario.data.datasets[1].backgroundColor = 'rgba(220,38,38,0.6)';
+    else if (factor > 1.05) charts.scenario.data.datasets[1].backgroundColor = 'rgba(22,163,74,0.6)';
+    else charts.scenario.data.datasets[1].backgroundColor = 'rgba(217,119,6,0.6)';
+
+    charts.scenario.update();
+
+    const tbody = document.getElementById('scenarioTable');
+    tbody.innerHTML = FORECAST_MONTHS.map((m,i) => {
+        const impact = scenarioData[i] - BASE_FORECAST[i];
+        const pct = ((impact/BASE_FORECAST[i])*100).toFixed(1);
+        const color = impact >= 0 ? 'color:#16a34a' : 'color:#dc2626';
+        return `<tr><td>${m}</td><td>$${BASE_FORECAST[i].toLocaleString()}K</td><td>$${scenarioData[i].toLocaleString()}K</td><td style="${color};font-weight:600">${impact>=0?'+':''}$${impact}K (${pct}%)</td></tr>`;
+    }).join('');
+}
+
+function applyPreset() {
+    const presets = {base:[100,100],conservative:[92,98],optimistic:[108,103],recession:[80,95]};
+    const sel = document.getElementById('scenarioPreset').value;
+    if (sel === 'custom') return;
+    const [v,p] = presets[sel];
+    document.getElementById('volSlider').value = v;
+    document.getElementById('priceSlider').value = p;
+    updateScenario();
+}
+
+// Feature importance chart
+function buildFeatureChart() {
+    const ctx = document.getElementById('chartFeatures').getContext('2d');
+    const sorted = [...FEATURES].sort((a,b) => b.importance - a.importance);
+    const colors = sorted.map(f => f.type==='Volume'?'#2563eb':f.type==='Price'?'#16a34a':f.type==='Seasonality'?'#d97706':'#7c3aed');
+    charts.features = new Chart(ctx, {
+        type:'bar',
+        data:{labels:sorted.map(f=>f.name),datasets:[{label:'Importance',data:sorted.map(f=>(f.importance*100).toFixed(1)),backgroundColor:colors,borderRadius:4}]},
+        options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{title:{display:true,text:'Importance (%)',font:{size:11}}}}}
+    });
+
+    const tbody = document.getElementById('featureTable');
+    tbody.innerHTML = sorted.map(f => {
+        const badge = f.type==='Volume'?'badge-blue':f.type==='Price'?'badge-green':'badge-green';
+        return `<tr><td>${f.name}</td><td>${f.coef.toFixed(3)}</td><td>${(f.importance*100).toFixed(1)}%</td><td><span class="badge ${badge}">${f.type}</span></td></tr>`;
+    }).join('');
+}
+
+// Residual and CV charts
+function buildResidualChart() {
+    const ctx = document.getElementById('chartResiduals').getContext('2d');
+    charts.residuals = new Chart(ctx, {
+        type:'bar',
+        data:{labels:RESIDUAL_BINS,datasets:[{label:'Count',data:RESIDUAL_COUNTS,backgroundColor:'rgba(37,99,235,0.6)',borderRadius:4}]},
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{title:{display:true,text:'Residual ($K)',font:{size:11}}},y:{title:{display:true,text:'Count',font:{size:11}}}}}
+    });
+}
+
+function buildCVChart() {
+    const ctx = document.getElementById('chartCV').getContext('2d');
+    const colors = CV_MAPES.map(m => m <= 4.1 ? '#16a34a' : '#d97706');
+    charts.cv = new Chart(ctx, {
+        type:'bar',
+        data:{labels:['Fold 1','Fold 2','Fold 3','Fold 4','Fold 5'],datasets:[{label:'MAPE %',data:CV_MAPES,backgroundColor:colors,borderRadius:6}]},
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:0,max:6,title:{display:true,text:'MAPE %',font:{size:11}}}}}
+    });
+}
+
+buildForecastChart();
+buildScenarioChart();
+updateScenario();
+buildFeatureChart();
+buildResidualChart();
+buildCVChart();
+</script>
+</body>
+</html>
